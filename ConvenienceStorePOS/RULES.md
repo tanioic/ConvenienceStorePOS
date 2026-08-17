@@ -1,11 +1,6 @@
-﻿このプロジェクトはMVVMです
+﻿### RULES.md
 
-Modelを書きます
-
-ViewModelを書きます
-
-CommunityToolkit.Mvvmを使います
-
-コードビハインドは禁止
-
-xUnitを書きます
+  • 設計方針: MVVMパターン（Model / ViewModel の実装）
+  • ライブラリ: CommunityToolkit.Mvvm を使用
+  • 制約: コードビハインド禁止
+  • テスト: xUnit によるテストを作成
