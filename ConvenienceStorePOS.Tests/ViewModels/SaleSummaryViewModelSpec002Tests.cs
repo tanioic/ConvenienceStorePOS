@@ -17,6 +17,7 @@ namespace ConvenienceStorePOS.Tests.ViewModels
         private readonly Mock<ISaleService> _mockSaleService;
         private readonly Mock<IProductService> _mockProductService;
         private readonly Mock<IAccountingService> _mockAccountingService;
+        private readonly Mock<IReceiptService> _mockReceiptService;
         private readonly Mock<IDatabaseInitializer> _mockDbInitializer;
         private readonly MainViewModel _viewModel;
 
@@ -25,6 +26,7 @@ namespace ConvenienceStorePOS.Tests.ViewModels
             _mockSaleService = new Mock<ISaleService>();
             _mockProductService = new Mock<IProductService>();
             _mockAccountingService = new Mock<IAccountingService>();
+            _mockReceiptService = new Mock<IReceiptService>();
             _mockDbInitializer = new Mock<IDatabaseInitializer>();
 
             _mockSaleService.Setup(s => s.Items).Returns(new List<CartItem>());
@@ -37,6 +39,7 @@ namespace ConvenienceStorePOS.Tests.ViewModels
                 _mockSaleService.Object,
                 _mockProductService.Object,
                 _mockAccountingService.Object,
+                _mockReceiptService.Object,
                 _mockDbInitializer.Object
             );
         }

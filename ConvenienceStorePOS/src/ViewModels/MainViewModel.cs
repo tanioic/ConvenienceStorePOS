@@ -14,8 +14,13 @@ namespace ConvenienceStorePOS.ViewModels
         private readonly ISaleService _saleService;
         private readonly IProductService _productService;
         private readonly IAccountingService _accountingService;
+        private readonly IReceiptService _receiptService;
         private readonly IDatabaseInitializer _databaseInitializer;
         private readonly DispatcherTimer? _clockTimer;
+
+        // Store last cart/summary for receipt generation (cart is cleared after payment)
+        private IReadOnlyList<CartItem> _lastCartItems = Array.Empty<CartItem>();
+        private SaleSummary _lastSaleSummary = SaleSummary.Empty;
 
         // --- Barcode & Product Search ---
         [ObservableProperty]
@@ -105,6 +110,16 @@ namespace ConvenienceStorePOS.ViewModels
         [ObservableProperty]
         private SaleTransaction? _completedTransaction;
 
+        // --- SPEC-004 Receipt Properties ---
+        [ObservableProperty]
+        private bool _isReceiptModalOpen;
+
+        [ObservableProperty]
+        private string _receiptText = string.Empty;
+
+        [ObservableProperty]
+        private Receipt? _currentReceipt;
+
         // --- Collections ---
         public ObservableCollection<CartItemViewModel> CartItems { get; } = new();
         public ObservableCollection<string> Categories { get; } = new();
@@ -117,11 +132,13 @@ namespace ConvenienceStorePOS.ViewModels
             ISaleService saleService,
             IProductService productService,
             IAccountingService accountingService,
+            IReceiptService receiptService,
             IDatabaseInitializer databaseInitializer)
         {
             _saleService = saleService ?? throw new ArgumentNullException(nameof(saleService));
             _productService = productService ?? throw new ArgumentNullException(nameof(productService));
             _accountingService = accountingService ?? throw new ArgumentNullException(nameof(accountingService));
+            _receiptService = receiptService ?? throw new ArgumentNullException(nameof(receiptService));
             _databaseInitializer = databaseInitializer ?? throw new ArgumentNullException(nameof(databaseInitializer));
 
             _saleService.CartChanged += OnCartChanged;
@@ -280,6 +297,11 @@ namespace ConvenienceStorePOS.ViewModels
         [RelayCommand]
         public void CloseAccounting()
         {
+            if (IsReceiptModalOpen)
+            {
+                CloseReceipt();
+                return;
+            }
             IsAccountingModalOpen = false;
             PaymentErrorMessage = string.Empty;
             SetStatus("会計を中断し、明細画面に戻りました。", isError: false);
@@ -428,6 +450,10 @@ namespace ConvenienceStorePOS.ViewModels
             IsAccountingModalOpen = false;
             IsTransactionCompletedModalOpen = true;
 
+            // Save cart data for receipt generation before clearing
+            _lastCartItems = _saleService.Items;
+            _lastSaleSummary = _saleService.Summary;
+
             // Clear active cart in sale service
             _saleService.ClearCart();
 
@@ -439,9 +465,83 @@ namespace ConvenienceStorePOS.ViewModels
         {
             IsTransactionCompletedModalOpen = false;
             CompletedTransaction = null;
+            CurrentReceipt = null;
+            ReceiptText = string.Empty;
             ReceivedAmountInput = string.Empty;
             UpdateAccountingCalculations();
             SetStatus("取引を完了しました。次の商品をスキャンしてください。", isError: false);
+        }
+
+        // ========================================================
+        // SPEC-004: Receipt Commands & Methods
+        // ========================================================
+
+        [RelayCommand]
+        public void ShowReceipt()
+        {
+            if (CompletedTransaction == null)
+            {
+                SetStatus("レシートを表示する取引がありません。", isError: true);
+                return;
+            }
+
+            var cartItems = _saleService.Items;
+            var summary = _saleService.Summary;
+
+            CurrentReceipt = _receiptService.CreateReceipt(
+                CompletedTransaction.RegisterNumber,
+                CompletedTransaction.StaffName,
+                CompletedTransaction.TransactionNumber,
+                CompletedTransaction.CreatedAt,
+                cartItems.Count > 0 ? cartItems : _lastCartItems,
+                summary.TotalQuantity > 0 ? summary : _lastSaleSummary,
+                CompletedTransaction.PaymentMethod,
+                CompletedTransaction.ReceivedAmount,
+                CompletedTransaction.ChangeAmount);
+
+            ReceiptText = _receiptService.GenerateReceiptText(CurrentReceipt);
+            IsReceiptModalOpen = true;
+        }
+
+        [RelayCommand]
+        public void CloseReceipt()
+        {
+            IsReceiptModalOpen = false;
+        }
+
+        [RelayCommand]
+        public void PrintReceipt()
+        {
+            if (string.IsNullOrEmpty(ReceiptText))
+            {
+                SetStatus("印刷するレシートがありません。", isError: true);
+                return;
+            }
+
+            try
+            {
+                var printDialog = new System.Windows.Controls.PrintDialog();
+                if (printDialog.ShowDialog() == true)
+                {
+                    var flowDocument = new System.Windows.Documents.FlowDocument(
+                        new System.Windows.Documents.Paragraph(
+                            new System.Windows.Documents.Run(ReceiptText)))
+                    {
+                        FontFamily = new System.Windows.Media.FontFamily("Consolas, Courier New"),
+                        FontSize = 10,
+                        PagePadding = new System.Windows.Thickness(20)
+                    };
+
+                    var documentPaginator = ((System.Windows.Documents.IDocumentPaginatorSource)flowDocument).DocumentPaginator;
+                    printDialog.PrintDocument(documentPaginator, $"レシート - {CompletedTransaction?.TransactionNumber ?? ""}");
+
+                    SetStatus("レシートを印刷しました。", isError: false);
+                }
+            }
+            catch (Exception ex)
+            {
+                SetStatus($"印刷に失敗しました: {ex.Message}", isError: true);
+            }
         }
 
         private void OnCartChanged(object? sender, EventArgs e)

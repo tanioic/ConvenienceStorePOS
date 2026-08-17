@@ -17,6 +17,8 @@
     <Window.InputBindings>
         <KeyBinding Key="F12" Command="{Binding OpenAccountingCommand}" />
         <KeyBinding Key="Escape" Command="{Binding CloseAccountingCommand}" />
+        <KeyBinding Key="F2" Command="{Binding ShowReceiptCommand}" />
+        <KeyBinding Key="F3" Command="{Binding PrintReceiptCommand}" />
     </Window.InputBindings>
 
     <Grid>
@@ -1038,21 +1040,162 @@
                     </Border>
 
                     <!-- Next Customer Action Button -->
-                    <Button Command="{Binding FinishTransactionCommand}"
-                            Content="次の取引へ (次客)"
-                            Height="50"
-                            FontSize="16"
-                            FontWeight="Bold"
-                            Background="{StaticResource AccentColor}"
-                            Foreground="White"
-                            Cursor="Hand">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="8"/>
-                            </Style>
-                        </Button.Resources>
-                    </Button>
+                    <Grid Margin="0,0,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Receipt View Button -->
+                        <Button Grid.Column="0"
+                                Command="{Binding ShowReceiptCommand}"
+                                Height="50"
+                                FontSize="14"
+                                FontWeight="SemiBold"
+                                Background="#EEEEEE"
+                                BorderBrush="#CCCCCC"
+                                Foreground="#333333"
+                                Cursor="Hand"
+                                Margin="0,0,8,0">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="8"/>
+                                </Style>
+                            </Button.Resources>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🧾" FontSize="16" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="レシートを表示 [F2]" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Next Transaction Button -->
+                        <Button Grid.Column="1"
+                                Command="{Binding FinishTransactionCommand}"
+                                Height="50"
+                                FontSize="16"
+                                FontWeight="Bold"
+                                Background="{StaticResource AccentColor}"
+                                Foreground="White"
+                                Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="8"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </Grid>
                 </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ========================================================
+             SPEC-004: RECEIPT PREVIEW MODAL (レシートプレビューダイアログ)
+             ======================================================== -->
+        <Grid Background="#99000000"
+              Visibility="{Binding IsReceiptModalOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Border Background="White"
+                    CornerRadius="12"
+                    Width="500"
+                    MaxHeight="680"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Padding="24">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.3" />
+                </Border.Effect>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" /> <!-- Modal Header -->
+                        <RowDefinition Height="*" />    <!-- Receipt Preview -->
+                        <RowDefinition Height="Auto" /> <!-- Modal Footer -->
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,12">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="🧾" FontSize="22" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="レシートプレビュー" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryColor}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <Button HorizontalAlignment="Right"
+                                Command="{Binding CloseReceiptCommand}"
+                                Content="✕"
+                                FontSize="18"
+                                FontWeight="Bold"
+                                Width="32" Height="32"
+                                Background="#F5F5F5"
+                                BorderBrush="#E0E0E0"
+                                Cursor="Hand" />
+                    </Grid>
+
+                    <!-- Receipt Preview Content -->
+                    <Border Grid.Row="1"
+                            Background="#FAFAFA"
+                            BorderBrush="#CCCCCC"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="16"
+                            Margin="0,0,0,12"
+                            MaxHeight="460">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <TextBlock Text="{Binding ReceiptText}"
+                                       FontFamily="Consolas, Courier New, monospace"
+                                       FontSize="12"
+                                       Foreground="#333333"
+                                       TextWrapping="NoWrap"
+                                       xml:space="preserve"
+                                       LineHeight="16" />
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Footer: Print & Close Buttons -->
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Close Button -->
+                        <Button Grid.Column="0"
+                                Command="{Binding CloseReceiptCommand}"
+                                Content="閉じる"
+                                Height="44"
+                                FontSize="14"
+                                FontWeight="SemiBold"
+                                Background="#EEEEEE"
+                                BorderBrush="#CCCCCC"
+                                Cursor="Hand"
+                                HorizontalAlignment="Left"
+                                Padding="20,0">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+
+                        <!-- Print Button -->
+                        <Button Grid.Column="1"
+                                Command="{Binding PrintReceiptCommand}"
+                                Height="44"
+                                FontSize="14"
+                                FontWeight="Bold"
+                                Background="{StaticResource PrimaryColor}"
+                                Foreground="White"
+                                Cursor="Hand"
+                                Padding="20,0">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🖨" FontSize="15" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="印刷 [F3]" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Grid>
             </Border>
         </Grid>
     </Grid>

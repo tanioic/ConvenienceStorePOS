@@ -41,6 +41,7 @@ namespace ConvenienceStorePOS
             services.AddSingleton<IProductService, ProductService>();
             services.AddSingleton<ISaleService, SaleService>();
             services.AddSingleton<IAccountingService, AccountingService>();
+            services.AddSingleton<IReceiptService, ReceiptService>();
 
             // ViewModels
             services.AddSingleton<MainViewModel>();
