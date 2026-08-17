@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ConvenienceStorePOS")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d98c511720ed25047e810363f083165ef81b2aa4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+593af882739340d6fc8cc20b5ae24db66bee2748")]
 [assembly: System.Reflection.AssemblyProductAttribute("ConvenienceStorePOS")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ConvenienceStorePOS")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
