@@ -10,5 +10,8 @@ namespace ConvenienceStorePOS.Services
         Task<IReadOnlyList<Product>> GetProductsByCategoryAsync(string category);
         Task<IReadOnlyList<Product>> SearchProductsAsync(string keyword, string? category = null);
         Task<IReadOnlyList<string>> GetCategoriesAsync();
+        Task AddProductAsync(Product product);
+        Task UpdateProductAsync(Product product);
+        Task DeleteProductAsync(int id);
     }
 }

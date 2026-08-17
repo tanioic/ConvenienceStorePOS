@@ -187,6 +187,15 @@ namespace ConvenienceStorePOS.Data
             await command.ExecuteNonQueryAsync();
         }
 
+        public async Task DeleteAsync(int id)
+        {
+            using var connection = await GetOpenConnectionAsync();
+            var sql = "UPDATE Products SET IsActive = 0 WHERE Id = @Id";
+            using var command = new SqliteCommand(sql, connection);
+            command.Parameters.AddWithValue("@Id", id);
+            await command.ExecuteNonQueryAsync();
+        }
+
         private static Product MapProduct(DbDataReader reader)
         {
             return new Product

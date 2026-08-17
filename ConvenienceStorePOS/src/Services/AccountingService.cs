@@ -83,5 +83,20 @@ namespace ConvenienceStorePOS.Services
         {
             return await _saleRepository.GetRecentSalesAsync(count);
         }
+
+        public async Task<IReadOnlyList<DailySalesSummary>> GetDailySalesSummaryAsync(DateTime startDate, DateTime endDate)
+        {
+            return await _saleRepository.GetDailySalesSummaryAsync(startDate, endDate);
+        }
+
+        public async Task<IReadOnlyList<CategorySalesSummary>> GetCategorySalesSummaryAsync(DateTime startDate, DateTime endDate)
+        {
+            return await _saleRepository.GetCategorySalesSummaryAsync(startDate, endDate);
+        }
+
+        public async Task<IReadOnlyList<PaymentMethodSalesSummary>> GetPaymentMethodSalesSummaryAsync(DateTime startDate, DateTime endDate)
+        {
+            return await _saleRepository.GetPaymentMethodSalesSummaryAsync(startDate, endDate);
+        }
     }
 }

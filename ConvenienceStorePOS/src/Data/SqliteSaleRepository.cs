@@ -204,5 +204,135 @@ namespace ConvenienceStorePOS.Data
                 RegisterNumber = reader.GetString(reader.GetOrdinal("RegisterNumber"))
             };
         }
+
+        public async Task<IReadOnlyList<SaleTransaction>> GetSalesByDateRangeAsync(DateTime startDate, DateTime endDate)
+        {
+            var sales = new List<SaleTransaction>();
+            using var connection = await GetOpenConnectionAsync();
+            var sql = "SELECT * FROM Sales WHERE CreatedAt >= @StartDate AND CreatedAt < @EndDate ORDER BY Id DESC";
+            using var command = new SqliteCommand(sql, connection);
+            command.Parameters.AddWithValue("@StartDate", startDate.ToString("o", CultureInfo.InvariantCulture));
+            command.Parameters.AddWithValue("@EndDate", endDate.ToString("o", CultureInfo.InvariantCulture));
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                sales.Add(MapSale(reader));
+            }
+
+            return sales;
+        }
+
+        public async Task<IReadOnlyList<DailySalesSummary>> GetDailySalesSummaryAsync(DateTime startDate, DateTime endDate)
+        {
+            var summaries = new List<DailySalesSummary>();
+            using var connection = await GetOpenConnectionAsync();
+            var sql = @"
+                SELECT
+                    date(CreatedAt) as SaleDate,
+                    COUNT(*) as TransactionCount,
+                    SUM(TotalQuantity) as TotalQuantity,
+                    SUM(TotalAmount) as TotalAmount,
+                    SUM(TotalTaxAmount) as TotalTax,
+                    SUM(CASE WHEN PaymentMethod = 1 THEN TotalAmount ELSE 0 END) as CashAmount,
+                    SUM(CASE WHEN PaymentMethod != 1 THEN TotalAmount ELSE 0 END) as CashlessAmount
+                FROM Sales
+                WHERE CreatedAt >= @StartDate AND CreatedAt < @EndDate
+                GROUP BY date(CreatedAt)
+                ORDER BY SaleDate DESC";
+            using var command = new SqliteCommand(sql, connection);
+            command.Parameters.AddWithValue("@StartDate", startDate.ToString("o", CultureInfo.InvariantCulture));
+            command.Parameters.AddWithValue("@EndDate", endDate.ToString("o", CultureInfo.InvariantCulture));
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                summaries.Add(new DailySalesSummary
+                {
+                    Date = DateTime.Parse(reader.GetString(0)),
+                    TransactionCount = reader.GetInt32(1),
+                    TotalQuantity = reader.GetInt32(2),
+                    TotalAmount = reader.GetDecimal(3),
+                    TotalTax = reader.GetDecimal(4),
+                    CashAmount = reader.GetDecimal(5),
+                    CashlessAmount = reader.GetDecimal(6)
+                });
+            }
+
+            return summaries;
+        }
+
+        public async Task<IReadOnlyList<CategorySalesSummary>> GetCategorySalesSummaryAsync(DateTime startDate, DateTime endDate)
+        {
+            var summaries = new List<CategorySalesSummary>();
+            using var connection = await GetOpenConnectionAsync();
+            var sql = @"
+                SELECT
+                    sd.ProductName,
+                    sd.TaxRateType,
+                    SUM(sd.Quantity) as TotalQuantity,
+                    SUM(sd.UnitPrice * sd.Quantity) as TotalAmountExcludingTax
+                FROM SaleDetails sd
+                INNER JOIN Sales s ON sd.SaleId = s.Id
+                WHERE s.CreatedAt >= @StartDate AND s.CreatedAt < @EndDate
+                GROUP BY sd.ProductName, sd.TaxRateType
+                ORDER BY TotalAmountExcludingTax DESC";
+            using var command = new SqliteCommand(sql, connection);
+            command.Parameters.AddWithValue("@StartDate", startDate.ToString("o", CultureInfo.InvariantCulture));
+            command.Parameters.AddWithValue("@EndDate", endDate.ToString("o", CultureInfo.InvariantCulture));
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var taxRateType = (TaxRateType)reader.GetInt32(1);
+                var totalExcl = reader.GetDecimal(3);
+                var taxRate = taxRateType == TaxRateType.Reduced8 ? 0.08m : 0.10m;
+                var tax = Math.Floor(totalExcl * taxRate);
+
+                summaries.Add(new CategorySalesSummary
+                {
+                    Category = reader.GetString(0),
+                    TotalQuantity = reader.GetInt32(2),
+                    TotalAmountExcludingTax = totalExcl,
+                    TotalTax = tax,
+                    TotalAmountIncludingTax = totalExcl + tax
+                });
+            }
+
+            return summaries;
+        }
+
+        public async Task<IReadOnlyList<PaymentMethodSalesSummary>> GetPaymentMethodSalesSummaryAsync(DateTime startDate, DateTime endDate)
+        {
+            var summaries = new List<PaymentMethodSalesSummary>();
+            using var connection = await GetOpenConnectionAsync();
+            var sql = @"
+                SELECT
+                    PaymentMethod,
+                    COUNT(*) as TransactionCount,
+                    SUM(TotalAmount) as TotalAmount
+                FROM Sales
+                WHERE CreatedAt >= @StartDate AND CreatedAt < @EndDate
+                GROUP BY PaymentMethod
+                ORDER BY TotalAmount DESC";
+            using var command = new SqliteCommand(sql, connection);
+            command.Parameters.AddWithValue("@StartDate", startDate.ToString("o", CultureInfo.InvariantCulture));
+            command.Parameters.AddWithValue("@EndDate", endDate.ToString("o", CultureInfo.InvariantCulture));
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var pm = (PaymentMethod)reader.GetInt32(0);
+                summaries.Add(new PaymentMethodSalesSummary
+                {
+                    PaymentMethod = (int)pm,
+                    PaymentMethodLabel = pm.GetDisplayLabel(),
+                    TransactionCount = reader.GetInt32(1),
+                    TotalAmount = reader.GetDecimal(2)
+                });
+            }
+
+            return summaries;
+        }
     }
 }

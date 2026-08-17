@@ -12,5 +12,6 @@ namespace ConvenienceStorePOS.Data
         Task<IReadOnlyList<string>> GetCategoriesAsync();
         Task AddAsync(Product product);
         Task UpdateAsync(Product product);
+        Task DeleteAsync(int id);
     }
 }

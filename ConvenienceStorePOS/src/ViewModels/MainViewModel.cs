@@ -6,6 +6,7 @@ using ConvenienceStorePOS.Common;
 using ConvenienceStorePOS.Data;
 using ConvenienceStorePOS.Models;
 using ConvenienceStorePOS.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ConvenienceStorePOS.ViewModels
 {
@@ -584,6 +585,34 @@ namespace ConvenienceStorePOS.ViewModels
         {
             StatusMessage = message;
             IsStatusError = isError;
+        }
+
+        // ========================================================
+        // SPEC-005: Product Management Window
+        // ========================================================
+
+        [RelayCommand]
+        private void OpenProductManagement()
+        {
+            var vm = App.ServiceProvider.GetRequiredService<ProductManagementViewModel>();
+            var window = new ProductManagementWindow { DataContext = vm };
+            _ = vm.InitializeAsync();
+            window.ShowDialog();
+            _ = LoadProductsAsync();
+            _ = LoadCategoriesAsync();
+        }
+
+        // ========================================================
+        // SPEC-006: Sales Report Window
+        // ========================================================
+
+        [RelayCommand]
+        private void OpenSalesReport()
+        {
+            var vm = App.ServiceProvider.GetRequiredService<SalesReportViewModel>();
+            var window = new SalesReportWindow { DataContext = vm };
+            _ = vm.InitializeAsync();
+            window.ShowDialog();
         }
     }
 }

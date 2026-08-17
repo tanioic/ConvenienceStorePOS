@@ -53,6 +53,32 @@
                         <Border Background="#43A047" CornerRadius="4" Padding="6,2" Margin="14,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="稼働中" FontSize="11" FontWeight="SemiBold" Foreground="White" />
                         </Border>
+                        <Button Command="{Binding OpenProductManagementCommand}" Margin="14,0,0,0" Padding="10,4"
+                                Background="#FF8F00" Foreground="White" FontWeight="SemiBold" FontSize="11" Cursor="Hand"
+                                ToolTip="商品の追加・編集・削除 (SPEC-005)">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="4"/>
+                                </Style>
+                            </Button.Resources>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📦" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="商品管理" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding OpenSalesReportCommand}" Margin="8,0,0,0" Padding="10,4"
+                                Background="#6A1B9A" Foreground="White" FontWeight="SemiBold" FontSize="11" Cursor="Hand"
+                                ToolTip="売上集計レポート (SPEC-006)">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="4"/>
+                                </Style>
+                            </Button.Resources>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📊" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="売上集計" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
 
                     <!-- Center / Station Info -->

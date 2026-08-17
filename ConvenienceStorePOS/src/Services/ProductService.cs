@@ -46,5 +46,41 @@ namespace ConvenienceStorePOS.Services
         {
             return await _productRepository.GetCategoriesAsync();
         }
+
+        public async Task AddProductAsync(Product product)
+        {
+            if (product == null) throw new ArgumentNullException(nameof(product));
+            if (string.IsNullOrWhiteSpace(product.Code))
+                throw new ArgumentException("商品コードは必須です。", nameof(product));
+            if (string.IsNullOrWhiteSpace(product.Name))
+                throw new ArgumentException("商品名は必須です。", nameof(product));
+            if (product.Price < 0)
+                throw new ArgumentException("単価は0以上である必要があります。", nameof(product));
+
+            await _productRepository.AddAsync(product);
+        }
+
+        public async Task UpdateProductAsync(Product product)
+        {
+            if (product == null) throw new ArgumentNullException(nameof(product));
+            if (product.Id <= 0)
+                throw new ArgumentException("有効な商品IDが必要です。", nameof(product));
+            if (string.IsNullOrWhiteSpace(product.Code))
+                throw new ArgumentException("商品コードは必須です。", nameof(product));
+            if (string.IsNullOrWhiteSpace(product.Name))
+                throw new ArgumentException("商品名は必須です。", nameof(product));
+            if (product.Price < 0)
+                throw new ArgumentException("単価は0以上である必要があります。", nameof(product));
+
+            await _productRepository.UpdateAsync(product);
+        }
+
+        public async Task DeleteProductAsync(int id)
+        {
+            if (id <= 0)
+                throw new ArgumentException("有効な商品IDが必要です。", nameof(id));
+
+            await _productRepository.DeleteAsync(id);
+        }
     }
 }

@@ -45,9 +45,13 @@ namespace ConvenienceStorePOS
 
             // ViewModels
             services.AddSingleton<MainViewModel>();
+            services.AddTransient<ProductManagementViewModel>();
+            services.AddTransient<SalesReportViewModel>();
 
             // Views
             services.AddTransient<MainWindow>();
+            services.AddTransient<ProductManagementWindow>();
+            services.AddTransient<SalesReportWindow>();
         }
     }
 }
