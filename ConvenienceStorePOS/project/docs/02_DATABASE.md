@@ -1,4 +1,4 @@
-﻿# 05_Database.md - データベース設計
+# DATABASE.md — DB設計
 
 ## 使用DB
 **SQLite** (`Microsoft.Data.Sqlite`)
@@ -106,21 +106,3 @@
 | アルコール除菌ウェットティッシュ | ¥200 | 4901005000030 |
 | 急速充電Type-Cケーブル 1m | ¥880 | 4901005000047 |
 | 不織布マスク ふつうサイズ 7枚入 | ¥320 | 4901005000054 |
-
-## Repository インタフェース
-
-### IProductRepository
-- `GetByCodeAsync(code)` — JANコードで検索
-- `GetByIdAsync(id)` — IDで取得
-- `GetAllAsync()` — 全商品取得（IsActive=1, Category, Id 順）
-- `GetByCategoryAsync(category)` — カテゴリ別取得
-- `SearchAsync(keyword, category?)` — キーワード検索（Name LIKE / Code LIKE）
-- `GetCategoriesAsync()` — カテゴリ一覧取得（DISTINCT）
-- `AddAsync(product)` — 商品追加（last_insert_rowid でID取得）
-- `UpdateAsync(product)` — 商品更新
-
-### ISaleRepository
-- `SaveSaleAsync(sale, details)` — 取引ヘッダ＋明細をトランザクションで保存
-- `GetByIdAsync(id)` — IDで取引取得
-- `GetByTransactionNumberAsync(transactionNumber)` — 取引番号で取得
-- `GetRecentSalesAsync(count=50)` — 最新取引を取得（Id DESC順）
