@@ -12,6 +12,7 @@ namespace ConvenienceStorePOS.Tests.ViewModels
     {
         private readonly Mock<ISaleService> _mockSaleService;
         private readonly Mock<IProductService> _mockProductService;
+        private readonly Mock<IAccountingService> _mockAccountingService;
         private readonly Mock<IDatabaseInitializer> _mockDbInitializer;
         private readonly MainViewModel _viewModel;
 
@@ -19,14 +20,19 @@ namespace ConvenienceStorePOS.Tests.ViewModels
         {
             _mockSaleService = new Mock<ISaleService>();
             _mockProductService = new Mock<IProductService>();
+            _mockAccountingService = new Mock<IAccountingService>();
             _mockDbInitializer = new Mock<IDatabaseInitializer>();
 
             _mockSaleService.Setup(s => s.Items).Returns(new List<CartItem>());
             _mockSaleService.Setup(s => s.Summary).Returns(new SaleSummary());
+            _mockAccountingService
+                .Setup(a => a.CalculateCurrencyBreakdown(It.IsAny<decimal>()))
+                .Returns((decimal amount) => new CurrencyBreakdown(amount));
 
             _viewModel = new MainViewModel(
                 _mockSaleService.Object,
                 _mockProductService.Object,
+                _mockAccountingService.Object,
                 _mockDbInitializer.Object
             );
         }
